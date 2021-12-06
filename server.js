@@ -17,8 +17,15 @@ app.use('/api', employeesRoutes);
 app.use('/api', departmentsRoutes);
 app.use('/api', productsRoutes);
 
-// polaczenie z DB za pomoca Mongoose
-mongoose.connect('mongodb://localhost:27017/companyDB', { useNewUrlParser: true, useUnifiedTopology: true });
+// polaczenie z DB za pomoca Mongoose z podzialem na tryby servera
+const NODE_ENV = process.env.NODE_ENV;
+let dbUri = '';
+
+if(NODE_ENV === 'production') dbUri = 'url to remote db';
+else if(NODE_ENV === 'test') dbUri = 'mongodb://localhost:27017/companyDBtest';
+else dbUri = 'mongodb://localhost:27017/companyDB';
+
+mongoose.connect(dbUri, { useNewUrlParser: true, useUnifiedTopology: true });
 const db = mongoose.connection;
 
 db.once('open', () => {
@@ -29,6 +36,8 @@ db.on('error', err => console.log('Error' + err));
 app.use((req, res) => {
   res.status(404).send({ message: 'Not found...' });
 });
-app.listen('8000', () => {
+const server = app.listen('8000', () => {
   console.log('Server is running on port: 8000');
 });
+
+module.exports = server;
